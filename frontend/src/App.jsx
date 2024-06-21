@@ -9,20 +9,31 @@ import ContentWritingForm from "./components/ContentWritingForm";
 import VolunteeringForm from "./components/VolunteeringForm";
 import SocialMediaMarketingForm from "./components/SocialMediaMarketingForm";
 import ProductOnlineMarketingForm from "./components/ProductOnlineMarketingForm";
+import SentCertificates from "./components/SentCertificates";
+import ContentWritingFormStartPage from "./components/ContentWritingFormStartPage";
+import VolunteeringFormStartPage from "./components/VolunteeringFormStartPage";
+import SocialMediaMarketingFormStartPage from "./components/SocialMediaMarketingFormStartPage";
+import ProductOnlineMarketingFormStartpage from "./components/ProductOnlineMarketingFormStartPage";
+
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin-panel" element={<AdminPanel />} />
+        <Route path="/" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminPanel />} />
         <Route path="/admin/provide-certificate" element={<ProvideCertificate />} />
+        <Route path="/admin/sent-certificates" element={<SentCertificates />} />
         <Route path="/admin/link-update" element={<LinkUpdate />} />
         <Route path="/admin/show-database" element={<ShowDatabase />} />
-        <Route path="/content-writing" element={<ContentWritingForm />} />
-        <Route path="/volunteering" element={<VolunteeringForm />} />
-        <Route path="/social-media-marketing" element={<SocialMediaMarketingForm />} />
-        <Route path="/product-online-marketing" element={<ProductOnlineMarketingForm />} />
+        <Route path="/content-writing" element={<ContentWritingFormStartPage />} />
+        <Route path="/content-writing/register" element={<ContentWritingForm />} />
+        <Route path="/volunteering" element={<VolunteeringFormStartPage />} />
+        <Route path="/volunteering/register" element={<VolunteeringForm />} />
+        <Route path="/social-media-marketing" element={<SocialMediaMarketingFormStartPage />} />
+        <Route path="/social-media-marketing/register" element={<SocialMediaMarketingForm />} />
+        <Route path="/product-online-marketing" element={<ProductOnlineMarketingFormStartpage />} />
+        <Route path="/product-online-marketing/register" element={<ProductOnlineMarketingForm />} />
       </Routes>
     </Router>
   );

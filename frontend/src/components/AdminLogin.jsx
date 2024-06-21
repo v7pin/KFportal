@@ -17,7 +17,7 @@ const AdminLogin = () => {
     try {
       // Temporary login check
       if (formData.username === "admin" && formData.password === "admin123") {
-        navigate("/admin-panel");
+        navigate("/admin");
       } else {
         setError("Invalid credentials");
       }

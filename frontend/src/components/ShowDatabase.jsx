@@ -1,106 +1,131 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const ShowDatabase = () => {
-  const [formData, setFormData] = useState({
-    internshipType: "",
-    searchQuery: "",
-  });
-  const [database, setDatabase] = useState([]);
-  const [message, setMessage] = useState("");
+  const [data, setData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/donations");
+        setData(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/show-database?internshipType=${formData.internshipType}&searchQuery=${formData.searchQuery}`
-      );
-      setDatabase(response.data);
-    } catch (error) {
-      setMessage("Failed to fetch database.");
-    }
+  const handleFilterChange = (e) => {
+    setFilter(e.target.value);
   };
 
-  const internshipOptions = [
-    "Content Writing & Marketing",
-    "Volunteering / Social Work",
-    "Social Media Marketing",
-    "Product & Online Marketing",
-  ];
+  const filteredData = data
+    .filter((entry) =>
+      entry.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((entry) => {
+      if (filter === "all") return true;
+      if (filter === "recent") {
+        const date = new Date(entry.created_at);
+        const today = new Date();
+        const lastWeek = new Date(today);
+        lastWeek.setDate(today.getDate() - 7);
+        return date >= lastWeek;
+      }
+      return false;
+    });
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-6xl">
         <h1 className="text-2xl font-bold mb-6 text-center">Show Database</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700">Internship Type</label>
-            <select
-              name="internshipType"
-              value={formData.internshipType}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded mt-2"
-              required
-            >
-              <option value="">Select Internship</option>
-              {internshipOptions.map((option, index) => (
-                <option key={index} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Search Applicant</label>
-            <input
-              type="text"
-              name="searchQuery"
-              value={formData.searchQuery}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded mt-2"
-              placeholder="Enter name to search"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-red-500 text-white p-2 rounded mt-4 hover:bg-red-600"
+        <div className="mb-4 flex flex-col md:flex-row justify-between items-center">
+          <select
+            className="p-2 border border-gray-300 rounded mb-2 md:mb-0 md:mr-2"
+            onChange={handleFilterChange}
+            value={filter}
           >
-            Show Database
-          </button>
-        </form>
-        {message && <p className="mt-4 text-center text-red-500">{message}</p>}
-        {database.length > 0 && (
-          <div className="mt-6">
-            <h2 className="text-lg font-bold mb-4">Applicant Data</h2>
-            <table className="min-w-full bg-white border">
-              <thead>
-                <tr>
-                  <th className="py-2 px-4 border">Name</th>
-                  <th className="py-2 px-4 border">Email</th>
-                  <th className="py-2 px-4 border">Phone</th>
-                  <th className="py-2 px-4 border">Gender</th>
-                  <th className="py-2 px-4 border">City</th>
+            <option value="all">All</option>
+            <option value="recent">Recent</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Search by name"
+            value={searchTerm}
+            onChange={handleSearch}
+            className="p-2 border border-gray-300 rounded mb-2 md:mb-0"
+          />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border">Name</th>
+                <th className="py-2 px-4 border">Email</th>
+                <th className="py-2 px-4 border">City</th>
+                <th className="py-2 px-4 border">Amount</th>
+                <th className="py-2 px-4 border">Receipt</th>
+                <th className="py-2 px-4 border">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((entry) => (
+                <tr key={entry.id}>
+                  <td className="py-2 px-4 border">{entry.name}</td>
+                  <td className="py-2 px-4 border">{entry.email}</td>
+                  <td className="py-2 px-4 border">{entry.city}</td>
+                  <td className="py-2 px-4 border">{entry.amount}</td>
+                  <td className="py-2 px-4 border">
+                    <a
+                      href={`http://localhost:5000/uploads/${entry.receipt}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500"
+                    >
+                      View Receipt
+                    </a>
+                  </td>
+                  <td className="py-2 px-4 border">
+                    {new Date(entry.created_at).toLocaleDateString()}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {database.map((item, index) => (
-                  <tr key={index}>
-                    <td className="py-2 px-4 border">{item.name}</td>
-                    <td className="py-2 px-4 border">{item.email}</td>
-                    <td className="py-2 px-4 border">{item.phone}</td>
-                    <td className="py-2 px-4 border">{item.gender}</td>
-                    <td className="py-2 px-4 border">{item.currentCity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex justify-center mt-4">
+          {[...Array(Math.ceil(filteredData.length / itemsPerPage)).keys()].map(
+            (number) => (
+              <button
+                key={number}
+                onClick={() => paginate(number + 1)}
+                className={`px-4 py-2 mx-1 ${
+                  currentPage === number + 1
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-300"
+                }`}
+              >
+                {number + 1}
+              </button>
+            )
+          )}
+        </div>
       </div>
     </div>
   );
